@@ -1,0 +1,247 @@
+{
+  "3": {
+    "inputs": {
+      "seed": 1087145764295358,
+      "steps": 100,
+      "cfg": 6,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "19",
+        0
+      ],
+      "positive": [
+        "12",
+        0
+      ],
+      "negative": [
+        "12",
+        1
+      ],
+      "latent_image": [
+        "30",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "4": {
+    "inputs": {
+      "ckpt_name": "epicrealismXL_v4Photoreal.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "6": {
+    "inputs": {
+      "text": "\nconvert to realistic SRILANKAN image of person ",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "7": {
+    "inputs": {
+      "text": "text, watermark, cartoon, anime, blurry, distorted, unrealistic, low-res, extra limbs, missing features, letters,\n",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "4",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "9": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "12": {
+    "inputs": {
+      "strength": 1.0000000000000002,
+      "start_percent": 0,
+      "end_percent": 0.30000000000000004,
+      "positive": [
+        "35",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "control_net": [
+        "14",
+        0
+      ],
+      "image": [
+        "31",
+        0
+      ],
+      "vae": [
+        "4",
+        2
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "13": {
+    "inputs": {
+      "image": "istockphoto-538178544-612x612.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "14": {
+    "inputs": {
+      "control_net_name": "sdxl\\mistoLine_fp16.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "19": {
+    "inputs": {
+      "model": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "CFGZeroStar",
+    "_meta": {
+      "title": "CFGZeroStar"
+    }
+  },
+  "29": {
+    "inputs": {
+      "megapixel": "1.0",
+      "aspect_ratio": "2:3 (Classic Portrait)",
+      "custom_ratio": false,
+      "custom_aspect_ratio": "1:1"
+    },
+    "class_type": "FluxResolutionNode",
+    "_meta": {
+      "title": "Flux Resolution Calc"
+    }
+  },
+  "30": {
+    "inputs": {
+      "width": [
+        "29",
+        0
+      ],
+      "height": [
+        "29",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "31": {
+    "inputs": {
+      "coarse": "enable",
+      "resolution": 1024,
+      "image": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "LineArtPreprocessor",
+    "_meta": {
+      "title": "Realistic Lineart"
+    }
+  },
+  "32": {
+    "inputs": {
+      "images": [
+        "31",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "35": {
+    "inputs": {
+      "from_translate": "auto",
+      "to_translate": "en",
+      "manual_translate": false,
+      "Manual Trasnlate": "Manual Trasnlate",
+      "text": "convert to realistic SRILANKAN image of person wearing cap",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "GoogleTranslateCLIPTextEncodeNode",
+    "_meta": {
+      "title": "Google Translate CLIP Text Encode Node"
+    }
+  }
+}
