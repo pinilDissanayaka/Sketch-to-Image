@@ -243,7 +243,7 @@ export default function SketchToFaceInterface() {
       formData.append('prompt', combinedPrompt);  // The text prompt for the API
       
       // Make the API call to generate the face image
-      const response = await fetch('http://216.81.248.20:8000/generate-image', {
+      const response = await fetch('http://127.0.0.1:8000/generate-image', {
         method: 'POST',
         body: formData,
         // Note: Don't set Content-Type header for FormData, let the browser set it automatically
