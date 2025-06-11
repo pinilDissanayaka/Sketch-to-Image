@@ -1,7 +1,7 @@
 {
   "3": {
     "inputs": {
-      "seed": 1087145764295358,
+      "seed": 753169767599823,
       "steps": 100,
       "cfg": 6,
       "sampler_name": "euler",
@@ -111,7 +111,7 @@
       "start_percent": 0,
       "end_percent": 0.30000000000000004,
       "positive": [
-        "35",
+        "6",
         0
       ],
       "negative": [
@@ -138,7 +138,7 @@
   },
   "13": {
     "inputs": {
-      "image": "istockphoto-538178544-612x612.jpg"
+      "image": "WhatsApp Image 2025-04-18 at 13.07.53_211c88d7.jpg"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -147,7 +147,7 @@
   },
   "14": {
     "inputs": {
-      "control_net_name": "sdxl\\mistoLine_fp16.safetensors"
+      "control_net_name": "models\\mistoLine_fp16.safetensors"
     },
     "class_type": "ControlNetLoader",
     "_meta": {
@@ -219,29 +219,6 @@
     "class_type": "PreviewImage",
     "_meta": {
       "title": "Preview Image"
-    }
-  },
-  "35": {
-    "inputs": {
-      "from_translate": "auto",
-      "to_translate": "en",
-      "manual_translate": false,
-      "Manual Trasnlate": "Manual Trasnlate",
-      "text": "convert to realistic SRILANKAN image of person wearing cap",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "clip": [
-        "4",
-        1
-      ]
-    },
-    "class_type": "GoogleTranslateCLIPTextEncodeNode",
-    "_meta": {
-      "title": "Google Translate CLIP Text Encode Node"
     }
   }
 }
