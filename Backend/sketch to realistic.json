@@ -1,7 +1,7 @@
 {
   "3": {
     "inputs": {
-      "seed": 753169767599823,
+      "seed": 222878739115698,
       "steps": 100,
       "cfg": 6,
       "sampler_name": "euler",
@@ -138,7 +138,7 @@
   },
   "13": {
     "inputs": {
-      "image": "WhatsApp Image 2025-04-18 at 13.07.53_211c88d7.jpg"
+      "image": "generated_image (4).png"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -147,7 +147,7 @@
   },
   "14": {
     "inputs": {
-      "control_net_name": "models\\mistoLine_fp16.safetensors"
+      "control_net_name": "sdxl\\mistoLine_fp16.safetensors"
     },
     "class_type": "ControlNetLoader",
     "_meta": {
@@ -207,18 +207,6 @@
     "class_type": "LineArtPreprocessor",
     "_meta": {
       "title": "Realistic Lineart"
-    }
-  },
-  "32": {
-    "inputs": {
-      "images": [
-        "31",
-        0
-      ]
-    },
-    "class_type": "PreviewImage",
-    "_meta": {
-      "title": "Preview Image"
     }
   }
 }

@@ -3,6 +3,7 @@ import json
 import time
 import os
 from typing import Optional
+import random
 
 COMFYUI_API_URL = "http://localhost:8188/prompt"
 COMFYUI_HISTORY_URL = "http://localhost:8188/history"
@@ -18,6 +19,9 @@ def build_workflow(prompt: str, image_path: str):
     
     
     workflow["13"]["inputs"]["image"] = image_path
+    
+    workflow["3"]["inputs"]["seed"] = random.randint(1, 2**32 - 1)
+
 
     return workflow
 
