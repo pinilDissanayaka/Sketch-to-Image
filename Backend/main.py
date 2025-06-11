@@ -6,8 +6,20 @@ from fastapi.responses import JSONResponse, Response
 from comfyui_client import build_workflow, send_to_comfyui, generate_and_get_image
 from pathlib import Path
 from PIL import Image
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
