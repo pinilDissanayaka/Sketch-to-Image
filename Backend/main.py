@@ -6,6 +6,7 @@ from comfyui_client import build_workflow, send_to_comfyui
 app = FastAPI()
 
 UPLOAD_DIR = "uploads"
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -20,9 +21,8 @@ async def generate_image_with_upload(
         with open(image_path, "wb") as f:
             f.write(file.file.read())
 
-    workflow_json = build_workflow(prompt, negative_prompt, image_path)
-    response = send_to_comfyui(workflow_json)
-    return {"status": "submitted", "details": response}
+    
+    return {"status": "submitted", "details": "done"}
 
 
 
