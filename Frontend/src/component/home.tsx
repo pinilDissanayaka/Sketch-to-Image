@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
-import { Upload, Loader, Download, RotateCcw } from 'lucide-react';
+import { Upload, Download, RotateCcw } from 'lucide-react';
 import Modal from './Modal';
+import LoadingScreen from './LoadingScreen';
 
 /**
  * Main component for the Sketch to Face application.
@@ -29,8 +30,7 @@ export default function SketchToFaceInterface() {
   const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
   // State to control the visibility of the result modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  /**
+    /**
    * Effect hook to automatically hide notifications after a delay
    * Clears the notification after 5 seconds
    */
@@ -38,11 +38,24 @@ export default function SketchToFaceInterface() {
     if (notification) {
       const timer = setTimeout(() => {
         setNotification(null);
-      }, 5000);
+      }, 100000);
       
       return () => clearTimeout(timer);
     }
-  }, [notification]);  /**
+  }, [notification]);
+
+  /**
+   * Effect hook to cleanup blob URLs when component unmounts or result changes
+   * Prevents memory leaks from generated image URLs
+   */
+  useEffect(() => {
+    return () => {
+      // Cleanup any existing blob URLs when component unmounts
+      if (result?.imageUrl && result.imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(result.imageUrl);
+      }
+    };
+  }, [result]);/**
    * Handles the dragover event for the file upload area
    * Prevents default browser behavior and updates UI state
    * 
@@ -221,49 +234,47 @@ export default function SketchToFaceInterface() {
     }
     
     // Set loading state
-    setIsLoading(true);
-      try {
+    setIsLoading(true);    try {
       // Create a FormData instance to send the file and other data to the API
       const formData = new FormData();
-      formData.append('sketch', selectedFile);  // The user's sketch image file
-      formData.append('description', description);  // The text description provided by user
-      formData.append('gender', selectedGender);  // Selected gender (male/female)
+      formData.append('file', selectedFile);  // The user's sketch image file (API expects 'file')
+      // Create a combined prompt with description and gender
+      const combinedPrompt = `${description} (${selectedGender})`;
+      formData.append('prompt', combinedPrompt);  // The text prompt for the API
       
-      // For demo purposes, simulate a 2-second delay to mimic API processing time
-      // In production, replace with your actual API endpoint
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Make the API call to generate the face image
+      const response = await fetch('http://216.81.248.20:8000/generate-image', {
+        method: 'POST',
+        body: formData,
+        // Note: Don't set Content-Type header for FormData, let the browser set it automatically
+      });
       
-      // PRODUCTION API ENDPOINT IMPLEMENTATION:
-      // The following code should be uncommented and configured when connecting to the real backend
-      // 
-      // const response = await fetch('/api/convert-sketch', {
-      //   method: 'POST',
-      //   body: formData,
-      //   // Include any necessary headers like authentication tokens if required
-      //   // headers: {
-      //   //   'Authorization': `Bearer ${authToken}`
-      //   // }
-      // });
-      // 
-      // // Check if the response was successful (status code 2xx)
-      // if (!response.ok) {
-      //   // Extract error message if available in response or use default
-      //   const errorData = await response.json().catch(() => ({}));
-      //   throw new Error(errorData.message || 'Failed to process the sketch');
-      // }
-      // 
-      // // Parse the successful response data
-      // const data = await response.json();
-        // Simulate successful response with mock data for demo purposes
-      // In production environment, this would be replaced with actual API response data
-      const mockResult = {
-        imageUrl: 'https://thispersondoesnotexist.com',  // URL to the AI-generated face image
-        message: 'Face successfully generated!'  // Success message from the API
-      };
-        
+      // Check if the response was successful (status code 2xx)
+      if (!response.ok) {
+        // Extract error message if available in response or use default
+        let errorMessage = 'Failed to process the sketch';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // The API returns the image directly as a blob/file download
+      const imageBlob = await response.blob();
+      
+      // Create a URL for the generated image blob
+      const imageUrl = URL.createObjectURL(imageBlob);
+      
+      // Create the result object with the generated image
+      const apiResult = {
+        imageUrl: imageUrl,  // URL to the AI-generated face image
+        message: 'Face successfully generated!'  // Success message
+      };        
       // Store the generated face result in component state
-      // In production, this would use the actual API response: setResult(data);
-      setResult(mockResult);
+      setResult(apiResult);
       
       // Display a success notification to inform the user
       setNotification({
@@ -463,27 +474,34 @@ export default function SketchToFaceInterface() {
         )}        {/* Submit Button Section */}
         <div className="flex flex-col items-center justify-center pt-6 w-full">          <button
             onClick={handleSubmit}
-            disabled={isLoading}            className={`w-full py-3 rounded-xl text-lg font-medium transition-all duration-200 flex items-center justify-center shadow-lg ${
+            disabled={isLoading}            className={`w-full py-3 rounded-xl text-lg font-medium transition-all duration-300 flex items-center justify-center shadow-lg relative overflow-hidden ${
               isLoading
-                ? 'bg-gray-700 text-gray-800 cursor-not-allowed'
-                : 'bg-gradient-to-r border-1 border-white hover:from-cyan-100 hover:to-blue-100 text-white hover:text-black transform hover:-translate-y-0.'
+                ? 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'
+                : 'bg-black border border-gray-700 hover:bg-gray-900 hover:border-gray-600 text-white transform hover:scale-105 hover:shadow-xl hover:shadow-black/50'
             }`}
           >
+            {isLoading && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"></div>
+            )}
             {isLoading ? (
               <>
-                <Loader className="w-5 h-5 mr-2 animate-spin" />
-                Processing...
+                <div className="w-5 h-5 mr-2 relative">
+                  <div className="absolute inset-0 border-2 border-gray-600 border-t-white rounded-full animate-spin"></div>
+                </div>
+                Generating Your Face...
               </>
             ) : (
               <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
                 </svg>
                 Generate Face
               </>
             )}
           </button>
-          <p className="mt-40 text-gray-400 text-sm text-center">Our AI will generate a realistic face based on your sketch</p>
+          <p className="mt-6 text-gray-400 text-sm text-center max-w-md">
+            Our advanced AI will transform your sketch into a photorealistic face in seconds
+          </p>
         </div>
           {/* Notification Display */}
         {notification && (
@@ -500,15 +518,14 @@ export default function SketchToFaceInterface() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               )}
-            </div>
-            <p className="font-medium">{notification.message}</p>
+            </div>            <p className="font-medium">{notification.message}</p>
           </div>
-        )}{/* Result Display Section */}
-        {result && (
-          <div className="mt-8 p-6 bg-gray-800 rounded-xl text-center animate-fadeIn shadow-lg">
+        )}        {/* Result Display Section */}
+        {result && !isModalOpen && (
+          <div className="mt-8 p-6 bg-gray-800 rounded-xl text-center animate-fadeIn shadow-lg border border-gray-700">
             <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
               <div className="md:flex-1">
-                <h2 className="text-white w-12 text-2xl font-semibold mb-6 text-center">Generated Face</h2>
+                <h2 className="text-white text-2xl font-semibold mb-6 text-center">Generated Face</h2>
                 <div className="w-64 h-64 mx-auto bg-gray-700 rounded-lg overflow-hidden mb-4 shadow-xl ring-2 ring-cyan-500/50">
                   <img 
                     src={result.imageUrl} 
@@ -520,33 +537,39 @@ export default function SketchToFaceInterface() {
                     }}
                   />
                 </div>
-                <p className="text-green-400 mb-2">{result.message}</p>
+                <p className="text-green-400 mb-2 font-medium">{result.message}</p>
               </div>
               
               <div className="md:flex-1 mt-6 md:mt-0">
                 <div className="mb-6 text-center">
-                  <h3 className="text-white text-lg mb-2">Your sketch produced excellent results!</h3>
+                  <h3 className="text-white text-lg mb-2 font-semibold">Your sketch produced excellent results!</h3>
                   <p className="text-gray-300 text-sm">Our AI has successfully transformed your sketch into a realistic face based on your provided description.</p>
                 </div>
-                  <div className="flex flex-col space-y-4 w-full">
-                  <button 
+                <div className="flex flex-col space-y-4 w-full"><button 
                     className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center justify-center"
                     onClick={() => {
-                      // Add download functionality here if needed
-                      const link = document.createElement('a');
-                      link.href = result.imageUrl || '';
-                      link.download = 'generated-face.jpg';
-                      link.click();
+                      // Download the generated image
+                      if (result.imageUrl) {
+                        const link = document.createElement('a');
+                        link.href = result.imageUrl;
+                        link.download = `generated-face-${Date.now()}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }
                     }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                     Download Image
-                  </button>
-                  <button 
+                  </button>                  <button 
                     className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center justify-center"
                     onClick={() => {
+                      // Cleanup blob URL before resetting
+                      if (result?.imageUrl && result.imageUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(result.imageUrl);
+                      }
                       setResult(null);
                       setSelectedFile(null);
                       setDescription('');
@@ -575,24 +598,30 @@ export default function SketchToFaceInterface() {
           sketchUrl={selectedFile ? URL.createObjectURL(selectedFile) : undefined}
           message={result.message} // Pass any success/info message from the API
         >          
-        <div className="flex flex-col space-y-4 mt-4">
-            <button 
+        <div className="flex flex-col space-y-4 mt-4">            <button 
               className="py-3 bg-[#06B6D4] hover:bg-[#0891b2] text-white rounded-lg transition-colors flex items-center justify-center shadow-md"
               onClick={() => {
                 // Create a download link for the generated face image
-                const link = document.createElement('a');
-                link.href = result.imageUrl || '';
-                link.download = 'generated-face.jpg';
-                link.click(); // Programmatically trigger the download
+                if (result.imageUrl) {
+                  const link = document.createElement('a');
+                  link.href = result.imageUrl;
+                  link.download = `generated-face-${Date.now()}.png`;
+                  document.body.appendChild(link);
+                  link.click(); // Programmatically trigger the download
+                  document.body.removeChild(link);
+                }
               }}
             >
               <Download className="w-5 h-5 mr-2" />
               Download Image
-            </button>
-              <button 
+            </button>              <button 
               className="py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center justify-center border border-gray-600"
               onClick={() => {
                 // Reset the entire application state to create a new image:
+                // Cleanup blob URL before resetting
+                if (result?.imageUrl && result.imageUrl.startsWith('blob:')) {
+                  URL.revokeObjectURL(result.imageUrl);
+                }
                 setIsModalOpen(false);       // Close the modal
                 setResult(null);             // Clear the generated result
                 setSelectedFile(null);       // Clear the uploaded sketch
@@ -602,10 +631,12 @@ export default function SketchToFaceInterface() {
             >
               <RotateCcw className="w-5 h-5 mr-2" />
               Create New Image
-            </button>
-          </div>
+            </button>          </div>
         </Modal>
       )}
+      
+      {/* Loading Screen */}
+      <LoadingScreen isVisible={isLoading} />
     </div>
   );
 }

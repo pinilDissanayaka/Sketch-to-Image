@@ -46,6 +46,45 @@ html {
   animation: pulse 1.5s ease-in-out;
 }
 
+/* Loading Screen Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(6, 182, 212, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.8); }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Enhanced progress bar animation */
+@keyframes progressPulse {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(1.02); }
+  100% { transform: scaleX(1); }
+}
+
+.animate-progress-pulse {
+  animation: progressPulse 1s ease-in-out infinite;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
